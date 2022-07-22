@@ -5,7 +5,21 @@
     "build": "imba build server.imba"
   },
   "dependencies": {
+    "axios": "^0.27.2",
+    "base-64": "^1.0.0",
+    "base64url": "^3.0.1",
+    "crypto-js": "^4.1.1",
+    "dotenv": "^16.0.1",
     "express": "^4.17.1",
-    "imba": "^2.0.0-alpha.208"
+    "express-session": "^1.17.3",
+    "imba": "^2.0.0-alpha.208",
+    "randomstring": "^1.2.2",
+    "zod": "^3.17.9"
+  },
+  "devDependencies": {
+    "@prisma/client": "^4.1.0",
+    "@types/node": "^18.0.6",
+    "prisma": "^4.1.0",
+    "ts-node": "^10.9.1"
   }
 }

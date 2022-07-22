@@ -1,7 +1,18 @@
 import express from 'express'
+import session from 'express-session'
 import index from './app/index.html'
+import route from './server/backend'
+import * as env from './server/env'
 
-const app = express!
+let app = express!
+
+app.use session
+	secret: env.SESSION_SECRET
+	resave: false
+	saveUninitialized: true
+	store: new session.MemoryStore
+
+app.use route
 
 # catch-all route that returns our index.html
 app.get(/.*/) do(req,res)
