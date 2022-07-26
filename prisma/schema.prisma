@@ -19,28 +19,29 @@ model User {
 model Provider {
   id String @id
   provider String
-  accessToken String
-  refreshToken String
-  user User @relation(fields: [userId], references: [id])
-  userId Int
+  access_token String
+  refresh_token String
+  user User @relation(fields: [user_id], references: [id])
+  user_id Int
 }
 
 model Publication {
   id Int @id @default(autoincrement())
   tweets Tweet[] 
   posts Post[]
-  author User @relation(fields: [authorId], references: [id])
-  authorId Int
+  author User @relation(fields: [author_id], references: [id])
+  author_id Int
 }
 
 model Post {
   id String @id
-  publicationId Int
-  publication Publication @relation(fields: [publicationId], references: [id])
+  subreddit String
+  publication_id Int
+  publication Publication @relation(fields: [publication_id], references: [id], onDelete: Cascade)
 }
 
 model Tweet {
   id String @id
-  publicationId Int
-  publication Publication @relation(fields: [publicationId], references: [id])
+  publication_id Int
+  publication Publication @relation(fields: [publication_id], references: [id], onDelete: Cascade)
 }
