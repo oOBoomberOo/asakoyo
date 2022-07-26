@@ -2,6 +2,7 @@ import type { Provider } from "@prisma/client"
 import { TwitterApi } from "twitter-api-v2"
 import { TWITTER_APP_KEY, TWITTER_APP_SECRET, TWITTER_REDIRECT_URI } from "./env"
 import { prisma } from "./database"
+import { InvalidProvider } from "./error"
 
 # A helper class to handle interaction with the Twitter API.
 export class Twitter
@@ -10,8 +11,7 @@ export class Twitter
 	
 	# Create an instance from Database's Provider
 	static def fromProvider provider\Provider
-		unless provider.provider === "twitter"
-			throw new InvalidProvider provider.provider, "twitter"
+		InvalidProvider.assert provider.provider, "twitter"
 
 		let client = new TwitterApi
 			appKey: TWITTER_APP_KEY
@@ -19,6 +19,8 @@ export class Twitter
 			accessToken: provider.access_token
 			accessSecret: provider.refresh_token
 		new Twitter client
+	
+	static provider-name = "twitter"
 	
 	static def initiateAuth
 		let client = new TwitterApi
@@ -38,7 +40,7 @@ export class Twitter
 		await prisma.provider.create
 			data:
 				id: profile.id_str
-				provider: "twitter"
+				provider: provider-name
 				access_token: accessToken
 				refresh_token: accessSecret
 				user_id: user.id
@@ -97,7 +99,3 @@ export class Twitter
 	def delete-tweets ids\string[]
 		await Promise.all ids.map do(id)
 			delete-tweet id
-			
-export class InvalidProvider < Error
-	constructor actual\string, expected\string
-		super "Invalid provider, expected {expected} but got {actual}"
