@@ -2,9 +2,9 @@ import express from 'express'
 import session from 'express-session'
 import morgan from 'morgan'
 import index from './app/index.html'
-import auth from './server/auth'
-import news from './server/news'
-import * as env from './server/env'
+import auth from './server/auth.imba'
+import news from './server/news.imba'
+import * as env from './server/env.imba'
 
 let app = express!
 

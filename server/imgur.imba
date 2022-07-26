@@ -3,10 +3,15 @@ import axios from 'axios'
 import { IMGUR_CLIENT_ID } from "./env.imba"
 import { ImgurClient } from "imgur"
 import sharp from 'sharp'
+import ffmpeg from 'fluent-ffmpeg'
+import fs from 'fs'
+import { UnsupportedImageType } from './error'
+import tempfile from 'tempfile'
 
 export class Imgur
 	constructor client\ImgurClient
 		#client = client
+
 	
 	static provider-name = "imgur"
 
@@ -15,27 +20,36 @@ export class Imgur
 			clientId: IMGUR_CLIENT_ID
 
 		new Imgur client
-	
+
+	# TODO: handle GIFs	
 	def preprocessor file\(Express.Multer.File)
 		if file.mimetype === "image/webp" || file.mimetype === "image/jpeg"
-			await sharp(file.buffer)
+			let buffer = await sharp(file.buffer)
 				.png()
 				.toBuffer()
+			{ ...file, buffer }
+		elif file.mimetype === "image/png"
+			{ ...file }
 		else
-			throw new Error("Unsupported image type")
+			throw new UnsupportedImageType(file.mimetype)
 	
 	def create-album files\(Express.Multer.File[])
 		let ids = []
+
+		let buffers = await Promise.all files.map do(file)
+			await preprocessor(file)
 		
-		for file in files
+		for file in buffers
 			let img = await #client.upload
-				image: await preprocessor(file)
-				title: file.originalname
+				image: file.buffer
+				name: file.originalname
 			
-			console.log "Uploaded image", img
+			console.log "Uploaded image {img.data.id} / {img.data.link}"
 
 			if img.success
 				ids.push img.data.deletehash
+			else
+				console.log img.data
 		
 		let params =
 			deletehashes: ids

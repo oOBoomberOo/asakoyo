@@ -1,4 +1,8 @@
-import { SocialLogin } from './components/credentials'
+import './components/news'
+import './components/credentials'
+import './components/publication'
+import * as api from './api'
+import { store, logged-in, has-publications } from './store'
 
 global css @root
 	$primary-color: orange5
@@ -14,17 +18,21 @@ global css html, body
 	c: $on-background-color
 
 tag app
+	css self
+		p: 15px clamp(50px, 25%, 200px)
 	
-	css .container
-		d: flex
-		fld: row
-		ai: center
-		jc: center
-		g: 15px
-
+	def mount
+		store.user = await api.me()
+		store.subreddits = await api.subreddits()
+		store.publications = await api.publications()
+	
 	<self>
-		<div.container>
-			<SocialLogin provider="Twitter">
-			<SocialLogin provider="Reddit">
+		<credentials>
+		<hr>
+		<news-form>
+		<hr>
+		
+		if logged-in()
+			<publication-list>
 
 imba.mount <app>

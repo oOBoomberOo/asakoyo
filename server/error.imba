@@ -9,8 +9,24 @@ export class InvalidProvider < Error
 		unless actual === expected
 			throw new InvalidProvider actual, expected
 
+export class UnsupportedImageType < Error
+	constructor got\string
+		super "Unsupported image type: {got} file cannot be uploaded to imgur.com"
+
+export class ImageTooLarge < Error
+	constructor filename\string, filesize\number, limit\number
+		super "Image too large - {filename} cannot be uploaded to imgur.com because it is {filesize} bytes, but the limit is {limit} bytes"
+	
+	static def assert filename\string, filesize\number, limit\number
+		unless filesize <= limit
+			throw new ImageTooLarge filename, filesize, limit
+
 export def handle-error req\Request, res\Response, err\Error
 	if err isa InvalidProvider
+		res.status(400).json { type: "error", message: err.message }
+	elif err isa UnsupportedImageType
+		res.status(400).json { type: "error", message: err.message }
+	elif err isa ImageTooLarge
 		res.status(400).json { type: "error", message: err.message }
 	elif err isa AxiosError
 		def from obj\object, fields

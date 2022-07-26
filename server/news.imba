@@ -42,10 +42,13 @@ router.get '/publications', registered-or([]), do(req, res)
 
 # Submit a new publication
 router.post '/publications', registered(), upload.array('files', 20), do(req\Request, res\Response)
-	console.log "POST /publications: Received", req.body
-
 	let files\(Express.Multer.File[]) = req.files or []
 	let { language, week, hashtag, subreddit } = req.body or {}
+
+	files.sort do(a, b)
+		let x = parseInt a.originalname
+		let y = parseInt b.originalname
+		x - y
 
 	try
 		unless language and week and hashtag and subreddit

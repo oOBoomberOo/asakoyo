@@ -43,6 +43,11 @@ router.get '/auth/reddit/callback', authenticated-or-redirect('/'), do(req, res)
 	catch err
 		handle-error req, res, err
 
+router.get '/logout', do(req, res)
+	req.session.destroy do(err)
+		console.error err
+	res.redirect '/'
+
 router.get '/me', registered-or(null), do(req, res)
 	try
 		let user = await prisma.user.findUnique
