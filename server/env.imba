@@ -11,3 +11,6 @@ export const TWITTER_REDIRECT_URI = process.env.TWITTER_REDIRECT_URI
 export const REDDIT_CLIENT_ID = process.env.REDDIT_CLIENT_ID
 export const REDDIT_CLIENT_SECRET = process.env.REDDIT_CLIENT_SECRET
 export const REDDIT_REDIRECT_URI = process.env.REDDIT_REDIRECT_URI
+export const REDDIT_USER_AGENT = process.env.REDDIT_USER_AGENT
+
+export const IMGUR_CLIENT_ID = process.env.IMGUR_CLIENT_ID

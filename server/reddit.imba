@@ -11,7 +11,7 @@ export class Reddit
 		#client = client
 	
 	static def fromProvider provider\Provider
-		InvalidProvider.assert provider.provider, "reddit"
+		InvalidProvider.assert provider.provider, provider-name
 
 		let client = new snoowrap
 			userAgent: user-agent
@@ -39,13 +39,19 @@ export class Reddit
 			redirectUri: REDDIT_REDIRECT_URI
 		let profile = client.getMe()
 		
-		await prisma.provider.create
-			data:
+		await prisma.provider.upsert
+			create:
 				id: profile.id
 				provider: provider-name
 				access_token: client.accessToken
 				refresh_token: client.refreshToken
 				user_id: user.id
+			update:
+				access_token: client.accessToken
+				refresh_token: client.refreshToken
+				user_id: user.id
+			where:
+				id: profile.id
 		
 		new Reddit client
 	
@@ -58,12 +64,21 @@ export class Reddit
 	def upload-media file\(Express.Multer.File)
 		throw Error "Not implemented"
 	
-	def post { title, media }
-		throw Error "Not implemented"
+	def post { title, link, subreddit }
+		let post = #client.submitLink
+			subredditName: subreddit
+			title: title
+			url: link
+		await post.then do(x) x.id
 	
 	def comment { post_id, comment_id, content }
 		throw Error "Not implemented"
 
 	def delete-post id\string
 		#client.getSubmission(id).delete()
+	
+	def delete-posts ids\string[]
+		await Promise.all ids.map do(id)
+			delete-post id
+			id
 	

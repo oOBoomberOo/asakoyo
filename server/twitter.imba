@@ -1,6 +1,6 @@
 import type { Provider } from "@prisma/client"
 import { TwitterApi } from "twitter-api-v2"
-import { TWITTER_APP_KEY, TWITTER_APP_SECRET, TWITTER_REDIRECT_URI } from "./env"
+import { TWITTER_APP_KEY, TWITTER_APP_SECRET, TWITTER_REDIRECT_URI } from "./env.imba"
 import { prisma } from "./database"
 import { InvalidProvider } from "./error"
 
@@ -9,9 +9,11 @@ export class Twitter
 	constructor client\TwitterApi
 		#client = client
 	
+	static provider-name = "twitter"
+
 	# Create an instance from Database's Provider
 	static def fromProvider provider\Provider
-		InvalidProvider.assert provider.provider, "twitter"
+		InvalidProvider.assert provider.provider, provider-name
 
 		let client = new TwitterApi
 			appKey: TWITTER_APP_KEY
@@ -20,15 +22,13 @@ export class Twitter
 			accessSecret: provider.refresh_token
 		new Twitter client
 	
-	static provider-name = "twitter"
-	
 	static def initiateAuth
 		let client = new TwitterApi
 			appKey: TWITTER_APP_KEY
 			appSecret: TWITTER_APP_SECRET
 		await client.generateAuthLink TWITTER_REDIRECT_URI
 	
-	static def fromCode { token, secret, verifier, user }
+	static def fromCode { token, secret, verifier }
 		let guestClient = new TwitterApi
 			appKey: TWITTER_APP_KEY
 			appSecret: TWITTER_APP_SECRET
@@ -37,15 +37,32 @@ export class Twitter
 		let { client, accessToken, accessSecret } = await guestClient.login verifier
 		let profile = await client.currentUser!
 
-		await prisma.provider.create
-			data:
+		let user = await prisma.user.findFirst
+			where:
+				providers:
+					some:
+						id: profile.id_str
+						provider: provider-name
+		
+		unless user
+			user = await prisma.user.create
+				data: {}
+
+		await prisma.provider.upsert
+			create:
 				id: profile.id_str
 				provider: provider-name
 				access_token: accessToken
 				refresh_token: accessSecret
 				user_id: user.id
+			update:
+				access_token: accessToken
+				refresh_token: accessSecret
+				user_id: user.id
+			where:
+				id: profile.id_str
 
-		new Twitter client
+		{ client: new Twitter(client), user: user }
 		
 	def user-id
 		let user = await #client.currentUser()
@@ -65,7 +82,9 @@ export class Twitter
 	#   if media is a file, it will be automatically uploaded to Twitter
 	def tweet { status, media }
 		let media_ids = await prepare-media media
-		await #client.v1.tweet status, { media_ids }
+		let result = await #client.v1.tweet status, { media_ids }
+		console.log "Tweeted {status} at https://twitter.com/i/status/{result.id}"
+		result
 	
 	# create a reply to a tweet
 	def reply { status, media, reply_id }
@@ -82,8 +101,8 @@ export class Twitter
 			let chain = await prev
 			let f = await cons
 
-			switch chain
-				when []
+			switch chain.length
+				when 0
 					let item = await tweet(f index)
 					[item]
 				else

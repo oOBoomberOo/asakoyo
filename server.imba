@@ -1,18 +1,23 @@
 import express from 'express'
 import session from 'express-session'
+import morgan from 'morgan'
 import index from './app/index.html'
-import route from './server/backend'
+import auth from './server/auth'
+import news from './server/news'
 import * as env from './server/env'
 
 let app = express!
 
+app.use morgan('common')
+app.use express.urlencoded { extended: true }
 app.use session
 	secret: env.SESSION_SECRET
 	resave: false
 	saveUninitialized: true
 	store: new session.MemoryStore
 
-app.use route
+app.use news
+app.use auth
 
 # catch-all route that returns our index.html
 app.get(/.*/) do(req,res)

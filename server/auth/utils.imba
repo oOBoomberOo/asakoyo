@@ -1,38 +1,62 @@
 import type { Request, Response, NextFunction } from 'express'
-import * as db from '../database'
-import { OAuth2 } from '../auth'
+import { AxiosError } from 'axios'
+import { user-with-providers } from '../database.imba'
 
-export def is-authenticated req\Request, res\Response, next\NextFunction
-	if req.session.user
-		next!
-	else
-		res.redirect '/'
+export def is-authenticated req\Request
+	req.session.user
 
-export def is-definitely-authenticated req\Request, res\Response, next\NextFunction
-	let user = await db.user-with-providers req.session.user.id
+export def is-registered req\Request
+	let id = req.session..user..id
 
-	# having two providers means the user has registered to both twitter and reddit
-	# NOTE: Might be an issue later on if we need to support more providers
-	if user..providers..length >= 2
-		next!
-	else
-		res.redirect '/'
+	unless id
+		return false
 
-export def oauth2-callback req\Request, res\Response, client\OAuth2, client-state, client-verifier
-	try
-		let { state: reply-state, code: reply-code } = req.query
-		let { data: { access_token, refresh_token }} = await client.fetch-token reply-state, reply-code, client-state, client-verifier
-		let id = await client.identity access_token
+	let user = await user-with-providers id
 
-		if let existing-provider = await db.provider(id)
-			req.session.user = await db.user existing-provider.userId
-			return res.redirect '/'
-		
-		let user = req.session.user
-		let provider = await db.create-provider(id, client.provider, access_token, refresh_token, user)
+	unless user
+		return false
+	
+	return user.providers..reddit and user.providers..twitter
 
-		req.session.user = await db.user provider.userId
-		res.redirect '/'
-	catch err
-		console.error err
-		res.redirect '/failure'
+
+export def authenticated
+	do(req\Request, res\Response, next\NextFunction)
+		if is-authenticated req
+			next!
+		else
+			res.status(401).send('Unauthorized')
+
+export def authenticated-or fallback\any
+	do(req\Request, res\Response, next\NextFunction)
+		if await is-authenticated req
+			next!
+		else
+			res.status(200).json fallback
+
+export def authenticated-or-redirect url\string
+	do(req\Request, res\Response, next\NextFunction)
+		if is-authenticated req
+			next!
+		else
+			res.redirect url
+
+export def registered
+	do(req\Request, res\Response, next\NextFunction)
+		if await is-registered req
+			next!
+		else
+			res.status(401).send('Unauthorized')
+
+export def registered-or fallback\any
+	do(req\Request, res\Response, next\NextFunction)
+		if await is-registered req
+			next!
+		else
+			res.status(200).json fallback
+
+export def registered-or-redirect url
+	do(req\Request, res\Response, next\NextFunction)
+		if await is-registered req
+			next!
+		else
+			res.redirect url
