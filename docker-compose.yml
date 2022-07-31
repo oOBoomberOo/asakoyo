@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+  asakoyo:
+    build: .
+    env_file:
+      - '.env'
+    environment:
+      - DATABASE_URL=postgres://asakoyo:asakoyo@database:5432/asakoyo
+    ports:
+      - '3000:3000'
+  database:
+    image: postgres
+    environment:
+      - POSTGRES_USER=asakoyo
+      - POSTGRES_PASSWORD=asakoyo
+      - POSTGRES_DB=asakoyo
+    restart: always
+    ports:
+      - '3001:5432'

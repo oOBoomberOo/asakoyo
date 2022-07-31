@@ -38,10 +38,11 @@ export class Reddit
 			clientSecret: REDDIT_CLIENT_SECRET
 			redirectUri: REDDIT_REDIRECT_URI
 		let profile = client.getMe()
+		let id = await profile.id
 		
 		await prisma.provider.upsert
 			create:
-				id: profile.id
+				id: id
 				provider: provider-name
 				access_token: client.accessToken
 				refresh_token: client.refreshToken
@@ -51,7 +52,7 @@ export class Reddit
 				refresh_token: client.refreshToken
 				user_id: user.id
 			where:
-				id: profile.id
+				id: id
 		
 		new Reddit client
 	

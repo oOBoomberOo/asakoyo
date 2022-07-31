@@ -4,7 +4,7 @@ import { Twitter } from './twitter'
 import { Reddit } from './reddit'
 import { prisma } from './database'
 import { handle-error } from './error'
-import { authenticated-or-redirect, registered-or } from './auth/utils'
+import { authenticated-or-redirect, authenticated-or } from './auth/utils'
 
 let router = Router()
 
@@ -48,7 +48,7 @@ router.get '/logout', do(req, res)
 		console.error err
 	res.redirect '/'
 
-router.get '/me', registered-or(null), do(req, res)
+router.get '/me', authenticated-or(null), do(req, res)
 	try
 		let user = await prisma.user.findUnique
 			where:
