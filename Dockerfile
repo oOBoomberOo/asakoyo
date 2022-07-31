@@ -15,4 +15,4 @@ COPY server.imba .
 
 RUN npm run build
 
-CMD [ "npm", "start" ]
+CMD [ "npm", "run", "serve" ]

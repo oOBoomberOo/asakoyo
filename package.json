@@ -2,7 +2,8 @@
   "name": "asakoyo2",
   "scripts": {
     "start": "imba -w server.imba",
-    "build": "imba build server.imba"
+    "build": "imba build server.imba",
+    "serve": "imba --mode production server.imba"
   },
   "dependencies": {
     "axios": "^0.27.2",

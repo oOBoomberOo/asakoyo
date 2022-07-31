@@ -3,6 +3,8 @@ version: '3'
 services:
   asakoyo:
     build: .
+    depends_on:
+      - database
     env_file:
       - '.env'
     environment:
