@@ -1,5 +1,7 @@
 FROM node:18
 
+RUN apt-get install -y libssl-dev
+
 WORKDIR /app
 
 COPY package.json .
@@ -15,4 +17,4 @@ COPY server.imba .
 
 RUN npm run build
 
-CMD [ "npm", "run", "serve" ]
+CMD [ "node", "dist/server.loader.js" ]

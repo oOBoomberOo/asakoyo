@@ -3,10 +3,13 @@ import session from 'express-session'
 import connect-redis from 'connect-redis'
 import redis from 'redis'
 import morgan from 'morgan'
+import SegfaultHandler from 'segfault-handler'
 import index from './app/index.html'
 import auth from './server/auth.imba'
 import news from './server/news.imba'
 import * as env from './server/env.imba'
+
+SegfaultHandler.registerHandler("crash.log")
 
 let app = express!
 let redis-client = redis.createClient { url: env.REDIS_URL }
