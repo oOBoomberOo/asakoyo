@@ -14,3 +14,5 @@ export const REDDIT_REDIRECT_URI = process.env.REDDIT_REDIRECT_URI
 export const REDDIT_USER_AGENT = process.env.REDDIT_USER_AGENT
 
 export const IMGUR_CLIENT_ID = process.env.IMGUR_CLIENT_ID
+
+export const REDIS_URL = process.env.REDIS_URL

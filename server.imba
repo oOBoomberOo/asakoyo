@@ -1,5 +1,7 @@
 import express from 'express'
 import session from 'express-session'
+import connect-redis from 'connect-redis'
+import redis from 'redis'
 import morgan from 'morgan'
 import index from './app/index.html'
 import auth from './server/auth.imba'
@@ -7,14 +9,17 @@ import news from './server/news.imba'
 import * as env from './server/env.imba'
 
 let app = express!
+let redis-client = redis.createClient { url: env.REDIS_URL }
+
+let RedisStore = connect-redis(session)
 
 app.use morgan('common')
 app.use express.urlencoded { extended: true }
 app.use session
 	secret: env.SESSION_SECRET
 	resave: false
-	saveUninitialized: true
-	store: new session.MemoryStore
+	saveUninitialized: false
+	store: new RedisStore({ client: redis-client })
 
 app.use news
 app.use auth
